@@ -1,0 +1,82 @@
+server:
+  port: 8088
+
+---
+
+spring:
+  profiles: default
+  cloud:
+    gateway:
+      routes:
+        - id: Purchase
+          uri: http://localhost:8081
+          predicates:
+            - Path=/purchases/** 
+        - id: Billing
+          uri: http://localhost:8082
+          predicates:
+            - Path=/billings/** 
+        - id: Consign
+          uri: http://localhost:8083
+          predicates:
+            - Path=/consigns/** 
+        - id: Stock
+          uri: http://localhost:8084
+          predicates:
+            - Path=/stocks/** 
+        - id: Dasbord
+          uri: http://localhost:8085
+          predicates:
+            - Path= /dashBords/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+
+---
+
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: Purchase
+          uri: http://Purchase:8080
+          predicates:
+            - Path=/purchases/** 
+        - id: Billing
+          uri: http://Billing:8080
+          predicates:
+            - Path=/billings/** 
+        - id: Consign
+          uri: http://Consign:8080
+          predicates:
+            - Path=/consigns/** 
+        - id: Stock
+          uri: http://Stock:8080
+          predicates:
+            - Path=/stocks/** 
+        - id: Dasbord
+          uri: http://Dasbord:8080
+          predicates:
+            - Path= /dashBords/**
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - "*"
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+server:
+  port: 8080
