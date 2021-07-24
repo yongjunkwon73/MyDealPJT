@@ -120,34 +120,35 @@
 
 
 ## AS-IS 조직 (Horizontally-Aligned)
-  ![ASIS](https://user-images.githubusercontent.com/85722789/126063210-7f6867b7-647f-4a05-9e58-17564a6d898b.JPG)
+  ![ASIS](https://user-images.githubusercontent.com/85722789/126855236-4bc35a6e-c5d8-49ae-be34-a13c5ca1f224.JPG)
+
 
 ## TO-BE 조직 (Vertically-Aligned)
-  ![TOBE](https://user-images.githubusercontent.com/85722789/126063218-d2966a94-0181-472c-9259-0946e9f9607e.JPG)
+   
+![TOBE](https://user-images.githubusercontent.com/85722789/126855257-54e03475-bb22-4226-a21a-30a457c717b5.JPG)
 
 ## Event Storming 결과
 * MSAEz 로 모델링한 이벤트스토밍 결과:  http://www.msaez.io/#/storming/qTPVkyZojONcrS0xJzeIbYjPXMl1/385eb70fafd285bf582522ab97f45e92
 
 
 ### 이벤트 도출
-![image](https://user-images.githubusercontent.com/31404198/125080856-48a5b100-e100-11eb-90d4-a738c74118ff.png)
+![이벤트도출](https://user-images.githubusercontent.com/85722789/126858287-d6e62fc9-7a5e-494e-86bc-0a848b0c0b58.JPG)
 
 ### 부적격 이벤트 탈락
-![image](https://user-images.githubusercontent.com/31404198/125080894-53f8dc80-e100-11eb-8fc8-fe760889d6ea.png)
+![이벤트도출](https://user-images.githubusercontent.com/85722789/126858287-d6e62fc9-7a5e-494e-86bc-0a848b0c0b58.JPG)
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
 
 ### 액터, 커맨드 부착하여 읽기 좋게
-![image](https://user-images.githubusercontent.com/31404198/125081045-830f4e00-e100-11eb-810c-f3d93b810b54.png)
+![command Actor](https://user-images.githubusercontent.com/85722789/126858940-6c4c4f76-87be-444a-b9d1-ceda8549bfb0.JPG)
 
 ### 어그리게잇으로 묶기
-![image](https://user-images.githubusercontent.com/31404198/125081386-e8633f00-e100-11eb-8b8a-f8383379072a.png)
-
+ ![Aggregate도출](https://user-images.githubusercontent.com/85722789/126858941-59d39f1a-c08c-4e2b-baf7-7f3b3b9e7095.JPG)
     - 예약, 대여처리, 결제정보, 재고는 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
 
 ### 바운디드 컨텍스트로 묶기
 
-![image](https://user-images.githubusercontent.com/31404198/125081538-16488380-e101-11eb-9f30-d8688c5d965c.png)
+![bounded context](https://user-images.githubusercontent.com/85722789/126858942-34772c74-ce5e-4449-b0b7-51debafc54ef.JPG)
 
     - 도메인 서열 분리 
         - Core Domain:  예약(front) : 없어서는 안될 핵심 서비스이며, 연견 Up-time SLA 수준을 99.999% 목표, 배포주기는 예약의 경우 1주일 1회 미만, 대여의 경우 1개월 1회 미만
@@ -156,41 +157,39 @@
 
 ### 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
 
-![image](https://user-images.githubusercontent.com/31404198/125081926-8a832700-e101-11eb-8f7d-7a32cd4189ab.png)
+![policy 도출](https://user-images.githubusercontent.com/85722789/126858948-054d1d42-fe45-42b6-94c4-e19c4f24f7b4.JPG)
 
 ### 폴리시의 이동과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
-![image](https://user-images.githubusercontent.com/31404198/125081998-9ec72400-e101-11eb-942f-a5beec455466.png)
+![폴리쉬이동 켄텍스트 매핑](https://user-images.githubusercontent.com/85722789/126858954-45193cae-5569-4899-aa4a-ac75d5befc9e.JPG)
 
 ### 완성된 1차 모형
+ 
+![1차완성본](https://user-images.githubusercontent.com/85722789/126858376-97c0d9d7-c631-439d-8f41-0532b53c3510.png)
 
-![image](https://user-images.githubusercontent.com/31404198/125188470-e4552f80-e26e-11eb-9a3a-c6784c62287b.png)
-
+![완성된 Model](https://user-images.githubusercontent.com/85722789/126863177-765ea206-3f7f-4f2d-8cac-2e1b7c3cbe65.JPG)
     - View Model 추가
 
 ### 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
-![image](https://user-images.githubusercontent.com/31404198/125188546-267e7100-e26f-11eb-9cd8-674365a4e5ce.png)
+![1차 완성본 검증](https://user-images.githubusercontent.com/85722789/126858381-49021905-ab83-4d4d-93a1-f09d5a7aba80.JPG)
 
     - 사용자가 킥보드 선택 후 예약한다. (ok)
     - 예약한 킥보드에 대해서 결제한다. (ok)
     - 결제 후 사용승인이 되면 킥보드를 대여한다. (ok)
     - 킥보드가 대여가 되면 재고가 감소된다. (ok)
 
-![image](https://user-images.githubusercontent.com/31404198/125188569-35652380-e26f-11eb-9d41-cd6e23a87959.png)
+![1차 완성본 검증 2](https://user-images.githubusercontent.com/85722789/126859571-03b5c975-9b75-4821-932b-0e0f07e36e23.JPG)
 
     - 사용자가 킥보드 예약을 취소한다. (ok)
     - 예약을 취소하면 결제가 취소된다. (ok)
-
-![image](https://user-images.githubusercontent.com/31404198/125188594-4150e580-e26f-11eb-823f-865320aaf110.png)
-
-    - 사용자가 킥보드를 반납한다. (ok)
-    - 반납요청이 확인되면 재고가 증가한다. (ok)
-    - 사용자는 대여상태를 대시보드에서 확인한다. (View-green sticker 의 추가로 ok)
+ 
 
 ### 비기능 요구사항에 대한 검증
 
-![image](https://user-images.githubusercontent.com/31404198/125188612-4ca41100-e26f-11eb-8139-2cb390446974.png)
+
+![비기능 검증](https://user-images.githubusercontent.com/85722789/126859608-95787c48-0a8f-43c9-8c15-7322167b1cb6.JPG)
+
 
     - 마이크로 서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
     - 고객 예약시 결제처리:  결제가 완료되지 않은 예약은 절대 대여를 할 수 없기 때문에, ACID 트랜잭션 적용. 예약완료시 결제처리에 대해서는 Request-Response 방식 처리
@@ -199,7 +198,9 @@
 
 ## 헥사고날 아키텍처 다이어그램 도출
     
-![image](https://user-images.githubusercontent.com/31404198/125391885-218cff00-e3e0-11eb-9663-05a0d58a28d7.png)
+ 
+![헥사고날](https://user-images.githubusercontent.com/85722789/126863188-1f9e91f4-6a18-42de-9f98-850441859008.JPG)
+
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
