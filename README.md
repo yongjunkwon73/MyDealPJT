@@ -135,7 +135,7 @@
 ![이벤트도출](https://user-images.githubusercontent.com/85722789/126858287-d6e62fc9-7a5e-494e-86bc-0a848b0c0b58.JPG)
 
 ### 부적격 이벤트 탈락
-![이벤트도출](https://user-images.githubusercontent.com/85722789/126858287-d6e62fc9-7a5e-494e-86bc-0a848b0c0b58.JPG)
+![부적격 이벤트 도출](https://user-images.githubusercontent.com/85722789/126858934-59f5c243-f523-4769-94be-58f92497b1fa.JPG)
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
 
