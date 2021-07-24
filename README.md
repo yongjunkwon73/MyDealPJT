@@ -1,5 +1,5 @@
 이미지
-![CAR](https://user-images.githubusercontent.com/85722789/126061819-84a1ce41-c170-4697-88e6-45ebe93033d5.JPG)
+![CAR_Image](https://user-images.githubusercontent.com/85722789/126855221-e47a5a34-2de9-4246-bedc-ea9a2a4c44dd.jpg)
 
 # 중고차 매매
 
