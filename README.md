@@ -1,7 +1,7 @@
 이미지
 ![CAR](https://user-images.githubusercontent.com/85722789/126061819-84a1ce41-c170-4697-88e6-45ebe93033d5.JPG)
 
-# 중고차 매채
+# 중고차 매매
 
 - 체크포인트 : https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
 
