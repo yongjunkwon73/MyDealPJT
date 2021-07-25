@@ -24,15 +24,15 @@ public class Purchase {
         BeanUtils.copyProperties(this, puchased);
         puchased.publishAfterCommit();
 
-       //인터넷 확인,, ApplicationContext context = new ClassPathXmlApplicationContext("AppContext.xml");
-        
+                
         //Following code causes dependency to external APIs
         // it is NOT A GOOD PRACTICE. instead, Event-Policy mapping is recommended.
 
         mydealprj.external.Billing billing = new mydealprj.external.Billing();
         // mappings goes here
-        // 일단 오류 Marking  KYJ
-        // Application.applicationContext.getBean(mydealprj.external.BillingService.class).pay(billing);
+        // 일단 오류 Marking  후 수정 
+        // 원 Application.applicationContext.getBean(mydealprj.external.BillingService.class).pay(billing);
+         PurchaseApplication.applicationContext.getBean(mydealprj.external.BillingService.class).pay(billing);
         
     }
     @PostUpdate
