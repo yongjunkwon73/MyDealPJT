@@ -1,9 +1,16 @@
 package mydealprj;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+
 import javax.persistence.*;
 import org.springframework.beans.BeanUtils;
 import java.util.List;
 import java.util.Date;
+ 
+
+//import mydealprj.external.Billing ;
+//import mydealprj.external.BillingService;
 
 @Entity
 @Table(name="Consign_table")
@@ -19,17 +26,30 @@ public class Consign {
     private String conCancelDate;
 
     @PostPersist
-    public void onPostPersist(){
-        Consigned consigned = new Consigned();
-        BeanUtils.copyProperties(this, consigned);
-        consigned.publishAfterCommit();
+    public void onPostPersist() throws Exception{
+        // 구매요청시 
+       
+        if("YES".equals(this.conStatus)) {
+            Consigned consigned = new Consigned();
+            BeanUtils.copyProperties(this, consigned);
+            consigned.publishAfterCommit();
+        }else{
+            throw new Exception("Consign system down");
+        } 
+
 
     }
     @PostUpdate
-    public void onPostUpdate(){
-        ConsignCancelled consignCancelled = new ConsignCancelled();
-        BeanUtils.copyProperties(this, consignCancelled);
-        consignCancelled.publishAfterCommit();
+    public void onPostUpdate() throws Exception{
+        // 구매 취소시 
+        if("NO".equals(this.conStatus)) {
+            ConsignCancelled consignCancelled = new ConsignCancelled();
+            BeanUtils.copyProperties(this, consignCancelled);
+            consignCancelled.publishAfterCommit();
+        }else{
+            throw new Exception("Consign system down");
+        }  
+
 
     }
 
