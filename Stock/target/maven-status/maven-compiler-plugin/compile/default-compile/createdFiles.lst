@@ -1,0 +1,11 @@
+mydealprj\StockChanged.class
+mydealprj\StockRepository.class
+mydealprj\config\kafka\KafkaProcessor.class
+mydealprj\AbstractEvent.class
+mydealprj\Consigned.class
+mydealprj\AbstractEvent$1.class
+mydealprj\StockApplication.class
+mydealprj\Stock.class
+mydealprj\ConsignCancelled.class
+mydealprj\PolicyHandler.class
+mydealprj\StockController.class
