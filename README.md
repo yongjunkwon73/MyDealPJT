@@ -231,10 +231,7 @@
   cd frontend
    mvn spring-boot:run
   
-  cd gateway
-  mvn spring-boot:ru
-  cd kubernetes
-  mvn spring-boot:ru
+  
 ```
 
 ## 게이트웨이 적용
