@@ -227,12 +227,9 @@
 
   cd Stock
   mvn spring-boot:run
+   
   
-  cd frontend
-   mvn spring-boot:run
-  
-  
-```
+  ```
 
 ## 게이트웨이 적용
 ```yml
