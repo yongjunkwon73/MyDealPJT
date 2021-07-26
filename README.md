@@ -213,20 +213,28 @@
 
 - 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
 ```
-  cd order
+  cd Billing
   mvn spring-boot:run
 
-  cd payment
+  cd Consign
   mvn spring-boot:run 
 
-  cd rent
+  cd DashBoard
   mvn spring-boot:run  
 
-  cd stock
+  cd Purchase
   mvn spring-boot:run 
 
-  cd gateway
+  cd Stock
   mvn spring-boot:run
+  
+  cd frontend
+   mvn spring-boot:run
+  
+  cd gateway
+  mvn spring-boot:ru
+  cd kubernetes
+  mvn spring-boot:ru
 ```
 
 ## 게이트웨이 적용
