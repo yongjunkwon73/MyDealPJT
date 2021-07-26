@@ -63,3 +63,6 @@ spring:
         event-out:
           destination: mydealprj
           contentType: application/json
+api: 
+  url: 
+    order: ${purchase-url}

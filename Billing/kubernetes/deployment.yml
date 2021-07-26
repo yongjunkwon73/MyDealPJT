@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Billing
+  name: billing
   labels:
-    app: Billing
+    app: billing
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: Billing
+      app: billing
   template:
     metadata:
       labels:
-        app: Billing
+        app: billing
     spec:
       containers:
-        - name: Billing
-          image: username/Billing:latest
+        - name: billing
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-billing:latest
           ports:
             - containerPort: 8080
           readinessProbe:

@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: Stock
+  name: stock
   labels:
-    app: Stock
+    app: stock
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: Stock
+      app: stock
   template:
     metadata:
       labels:
-        app: Stock
+        app: stock
     spec:
       containers:
-        - name: Stock
-          image: username/Stock:latest
+        - name: stock
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-stock:latest
           ports:
             - containerPort: 8080
           readinessProbe:
