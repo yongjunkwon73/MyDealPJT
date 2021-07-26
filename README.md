@@ -232,32 +232,37 @@
   ```
 
 ## 게이트웨이 적용
-```yml
+```application.yml
+server:
+  port: 8088
+
+---
+
 spring:
   profiles: default
   cloud:
     gateway:
       routes:
-        - id: Order
+        - id: Purchase
           uri: http://localhost:8081
           predicates:
-            - Path=/order/** 
-        - id: Stock
+            - Path=/purchases/** 
+        - id: Billing
           uri: http://localhost:8082
           predicates:
-            - Path=/stock/** 
-        - id: Payment
+            - Path=/billings/** 
+        - id: Consign
           uri: http://localhost:8083
           predicates:
-            - Path=/payment/** 
-        - id: Dashboard
+            - Path=/consigns/** 
+        - id: Stock
           uri: http://localhost:8084
           predicates:
-            - Path= /dashboard/**
-        - id: Rent
+            - Path=/stocks/** 
+        - id: DashBoard
           uri: http://localhost:8085
           predicates:
-            - Path=/rent/** 
+            - Path= /dashes/**
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -277,26 +282,26 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: order
-          uri: http://order:8080
+        - id: Purchase
+          uri: http://Purchase:8080
           predicates:
-            - Path=/order/** 
-        - id: stock
-          uri: http://stock:8080
+            - Path=/purchases/** 
+        - id: Billing
+          uri: http://Billing:8080
           predicates:
-            - Path=/stock/** 
-        - id: payment
-          uri: http://payment:8080
+            - Path=/billings/** 
+        - id: Consign
+          uri: http://Consign:8080
           predicates:
-            - Path=/payment/** 
-        - id: dashboard
-          uri: http://dashboard:8080
+            - Path=/consigns/** 
+        - id: Stock
+          uri: http://Stock:8080
           predicates:
-            - Path= /dashboard/**
-        - id: rent
-          uri: http://rent:8080
+            - Path=/stocks/** 
+        - id: DashBoard
+          uri: http://DashBoard:8080
           predicates:
-            - Path=/rent/** 
+            - Path= /dashes/**
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -307,7 +312,10 @@ spring:
             allowedHeaders:
               - "*"
             allowCredentials: true
-```
+
+server:
+  port: 8080
+  
 - gateway Service yml 에 loadBalancer 적용
 ```yml
 apiVersion: v1
