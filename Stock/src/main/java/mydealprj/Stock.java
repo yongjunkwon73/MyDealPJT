@@ -21,9 +21,15 @@ public class Stock {
 
     @PostPersist
     public void onPostPersist(){
-        StockChanged stockChanged = new StockChanged();
-        BeanUtils.copyProperties(this, stockChanged);
-        stockChanged.publishAfterCommit();
+        if(this.stockTotal == -1){
+          StockChanged stockChanged = new StockChanged();
+          BeanUtils.copyProperties(this, stockChanged);
+          stockChanged.publishAfterCommit();
+        } else if(this.stockTotal == 1) {
+          StockChanged stockChanged = new StockChanged();
+          BeanUtils.copyProperties(this, stockChanged);
+          stockChanged.publishAfterCommit();    
+        }
 
     }
 

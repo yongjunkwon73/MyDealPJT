@@ -20,17 +20,23 @@ public class Billing {
 
     @PostPersist
     public void onPostPersist(){
-        Payed payed = new Payed();
-        BeanUtils.copyProperties(this, payed);
-        payed.publishAfterCommit();
+         // 결재 완료 후 Kafka 전
+        if(this.payStatus == "Y") {
+          Payed payed = new Payed();
+          BeanUtils.copyProperties(this, payed);
+          payed.publishAfterCommit();
+            
+        }      
 
     }
     @PostUpdate
     public void onPostUpdate(){
+         // 결재 취소 전송 
+       if(this.payStatus == "M") {
         PayCancelled payCancelled = new PayCancelled();
         BeanUtils.copyProperties(this, payCancelled);
-        payCancelled.publishAfterCommit();
-
+        payCancelled.publishAfterCommit(); 
+       }
     }
 
     public Long getPayId() {

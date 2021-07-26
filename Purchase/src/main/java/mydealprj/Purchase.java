@@ -20,9 +20,13 @@ public class Purchase {
 
     @PostPersist
     public void onPostPersist(){
-        Puchased puchased = new Puchased();
-        BeanUtils.copyProperties(this, puchased);
-        puchased.publishAfterCommit();
+        // 구매 요청시 
+        if(this.puStatus == "Y") {
+             Puchased puchased = new Puchased();
+             BeanUtils.copyProperties(this, puchased);
+             puchased.publishAfterCommit();
+        }
+       
 
                 
         //Following code causes dependency to external APIs
@@ -37,9 +41,13 @@ public class Purchase {
     }
     @PostUpdate
     public void onPostUpdate(){
-        PuchaseCancelled puchaseCancelled = new PuchaseCancelled();
-        BeanUtils.copyProperties(this, puchaseCancelled);
-        puchaseCancelled.publishAfterCommit();
+        // 구매취소시 
+        if(this.puStatus == "Y") {
+            PuchaseCancelled puchaseCancelled = new PuchaseCancelled();
+            BeanUtils.copyProperties(this, puchaseCancelled);
+            puchaseCancelled.publishAfterCommit();
+        }
+
 
     }
 

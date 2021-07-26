@@ -27,7 +27,7 @@ public class Consign {
 
     @PostPersist
     public void onPostPersist() throws Exception{
-        // 구매요청시 
+        // 구매 배송 요청시 
        
         if("YES".equals(this.conStatus)) {
             Consigned consigned = new Consigned();
@@ -41,7 +41,7 @@ public class Consign {
     }
     @PostUpdate
     public void onPostUpdate() throws Exception{
-        // 구매 취소시 
+        // 구매 취소시  배송 취소
         if("NO".equals(this.conStatus)) {
             ConsignCancelled consignCancelled = new ConsignCancelled();
             BeanUtils.copyProperties(this, consignCancelled);

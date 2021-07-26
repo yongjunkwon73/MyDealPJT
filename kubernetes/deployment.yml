@@ -18,9 +18,15 @@ spec:
     spec:
       containers:
         - name: Purchase
-          image: username/Purchase:latest
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/Purchase:latest
           ports:
             - containerPort: 8080
+          env:
+            - name: Purchase-URL
+              valueFrom:
+                configMapKeyRef:
+                  name: Purchase-configmap
+                  key: Purchase-url         
           readinessProbe:
             httpGet:
               path: '/actuator/health'
@@ -58,7 +64,7 @@ spec:
     spec:
       containers:
         - name: Billing
-          image: username/Billing:latest
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/Billing:latest
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -98,7 +104,7 @@ spec:
     spec:
       containers:
         - name: Consign
-          image: username/Consign:latest
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/Consign:latest
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -138,7 +144,7 @@ spec:
     spec:
       containers:
         - name: Stock
-          image: username/Stock:latest
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/Stock:latest
           ports:
             - containerPort: 8080
           readinessProbe:
@@ -178,7 +184,7 @@ spec:
     spec:
       containers:
         - name: DashBoard
-          image: username/DashBoard:latest
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/DashBoard:latest
           ports:
             - containerPort: 8080
           readinessProbe:
