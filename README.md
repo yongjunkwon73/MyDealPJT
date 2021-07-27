@@ -1115,9 +1115,8 @@ spec:
     app: order
 
 
----
 
- ## Deploy 완료 ( POD /Service 생성)
+- Deploy 완료 ( POD /Service 생성)
 
 ![POD생성](https://user-images.githubusercontent.com/85722789/127077585-9b059e3b-5c0f-4bd0-90c7-179c4228fe58.jpg)
 
