@@ -1124,33 +1124,101 @@ spec:
 
 ## Helm 설치
 
- - 
+ - Helm 설치 하기 
+ ```
+ curl https://raw.githubusercontent.com/helm/helm/master/scripts/get > get_helm.sh				# Download Helm Script
+chmod 700 get_helm.sh												# 실행권한 부여
+./get_helm.sh
+ ```
+
+![helm 설치](https://user-images.githubusercontent.com/85722789/127078381-a43391b4-c817-4490-9ef2-c4696354d3e4.jpg)
+
+- Helm 서버인 Tiller에 대한 클러스터 관리자 역할을 가진 계정 생성
+```
+kubectl --namespace kube-system create sa tiller								# tiller service 계정 생성
+kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller	# 클러스터 관리자 역할 부여
+```
+
+![helm 클러스터 관리자](https://user-images.githubusercontent.com/85722789/127078485-7de70975-79d5-4c7b-a365-7ae224740ef4.jpg)
+
+- Helm incubator repository 추가
+
+![helm 클러스 레파지토리](https://user-images.githubusercontent.com/85722789/127079158-797476d7-ebf6-4c7c-8938-3693c07be242.jpg)
+
+## chart 설치
+```
+helm repo update						# 최신 chart 리스트 업데이트
+kubectl create ns kafka						# kafka namespace 생성
+helm install my-kafka --namespace kafka incubator/kafka 	# my-kafka에 incubator 설치
+kubectl get all -n kafka					# kafka 설치 확인
+```
+[chart 설치](https://user-images.githubusercontent.com/85722789/127079139-170bea80-3eab-4ba4-9a51-6c9664ca76a5.jpg)
+
+## 동기식 호출 / 서킷 브레이킹 / 장애격리
+ - istio 설치
+```
+cd /home/project
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.7.1 TARGET_ARCH=x86_64 sh -        # istio 설치파일 download
+cd istio-1.7.1
+export PATH=$PWD/bin:$PATH                                                                  # istio PATH 추가
+istioctl install --set profile=demo --set hub=gcr.io/istio-release                          # istio 설치
+kubectl label namespace default istio-injection=enabled                                     # istio를 kubectl에 injection
+kubectl get all -n istio-system                                                             # istio injection 상태 확인
+```
+ - istio 설치파일 다운로드
+ ![isto설치3](https://user-images.githubusercontent.com/85722789/127080331-0e36837a-88c6-4f1d-867a-1f4581d15ed1.jpg)
+ - stio 설치 확인(istio namespace service 구성 및  확인)
+ ![isto설치3](https://user-images.githubusercontent.com/85722789/127080331-0e36837a-88c6-4f1d-867a-1f4581d15ed1.jpg)
+
+![isto  name service 확인](https://user-images.githubusercontent.com/85722789/127080451-069b42c0-a07b-4369-9e80-d51b29cd6c60.jpg)
+
+ - 마이크로서비스 재배포 후(Pod의 READY가 1/1에서 2/2로 변경됨, gateway)  
+ ![isto 설치 후 pod 구성](https://user-images.githubusercontent.com/85722789/127080460-9b0e71f6-e6d8-41b9-b1d0-51bbd51bdd36.jpg)
+ 
+
+ - kiali 설치
+
+  ![kiali설치](https://user-images.githubusercontent.com/85722789/127080653-76284201-0c22-469e-885a-a60a462ca1ee.jpg)
+
+ - kiali.yaml 수정
+```
+vi istio-1.7.1/istiosamples/addons/kiali.yaml
+	4라인의 apiVersion: 
+		apiextensions.k8s.io/v1beta1을 apiVersion: apiextensions.k8s.io/v1으로 수정
+
+```
+-  kiali 서비스 설정
+```
+kubectl apply -f samples/addons
+	kiali.yaml 오류발생시, 아래 명령어 실행
+		kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.7/samples/addons/kiali.yaml
+```
+
+-  kiali External IP 설정 및 IP 확인
+
+```
+kubectl edit svc kiali -n istio-system                                   # kiali External IP 설정
+	:%s/ClusterIP/LoadBalancer/g
+	:wq!
+kubectl get all -n istio-system                                          # EXTERNAL-IP 확인
+```
+![kiali External IP 확인](https://user-images.githubusercontent.com/85722789/127080831-98a0a6d0-e812-41de-8af3-4f8679f5cb38.jpg)
 
 
-## 무정지 재배포(Readiness Probe)
+- kiali 접속 확인 
+![kiali 접속](https://user-images.githubusercontent.com/85722789/127081026-f24dff7d-fc1b-48ad-8d9d-b2e192fac998.jpg)
+![kiali 접속2](https://user-images.githubusercontent.com/85722789/127081038-2b9d455a-0b7d-4398-8952-7c900bd21a6e.jpg)
 
-- siege로 부하를 주기전 운영 상태의 워크로드를 모니터링
- ![KakaoTalk_20210713_114855317](https://user-images.githubusercontent.com/25606601/125391504-97dd3180-e3df-11eb-9805-c62360c7c3d3.png)
- ![KakaoTalk_20210713_114857158](https://user-images.githubusercontent.com/25606601/125391507-9875c800-e3df-11eb-8d8a-8003a9eb3e76.png)
- ![KakaoTalk_20210713_114858955](https://user-images.githubusercontent.com/25606601/125391509-990e5e80-e3df-11eb-8fed-f15c4b026c34.png)
+## 서킷브레이커 설정
 
-- Autoscaler 설정이 있으므로 현재는 가용이 100%, 무정재 재배포를 증명하기 위해 Autoscaler 설정을 제거하고 다시 부하시작
- ![KakaoTalk_20210713_114900577](https://user-images.githubusercontent.com/25606601/125391510-990e5e80-e3df-11eb-9e0a-285a1e8c7012.png)
 
-- siege로 부하를 시작하고 가용률이 100%에서 63%로 떨어진 것을 확인
- ![KakaoTalk_20210713_115034531](https://user-images.githubusercontent.com/25606601/125391511-99a6f500-e3df-11eb-88c0-6eb8dad5406d.png)
- ![KakaoTalk_20210713_121328327](https://user-images.githubusercontent.com/25606601/125391513-9a3f8b80-e3df-11eb-839f-c580bc67733e.png)
 
-- 서비스를 다시 올리고 운영상태를 모니터링 
- ![KakaoTalk_20210713_121333338](https://user-images.githubusercontent.com/25606601/125391514-9a3f8b80-e3df-11eb-8c62-6d31cc41ca81.png)
- ![KakaoTalk_20210713_121338267](https://user-images.githubusercontent.com/25606601/125391515-9ad82200-e3df-11eb-9cb9-d69edbfadf8d.png)
+서킷브레이커 설정(DestinationRule)
 
-- Readiness Probe 설정이 Pod의 상태를 비정상으로 판단해 사용할 수 없음을 표시하고 서비스에서 제외 
- ![KakaoTalk_20210713_121343142](https://user-images.githubusercontent.com/25606601/125391516-9ad82200-e3df-11eb-96d9-8933513e1c3f.png)
+Seige 툴을 통한 서킷 브레이커 동작 확인 (미수행)
 
-- 동일한 시나리오로 재배포 한 후 Availability 확인, 운영시간동안 100%로 무정지 재배포가 된 것으로 확인
- ![KakaoTalk_20210713_121351158](https://user-images.githubusercontent.com/25606601/125391517-9b70b880-e3df-11eb-8cf0-4a4bed0fb526.png)
- ![KakaoTalk_20210713_121404148](https://user-images.githubusercontent.com/25606601/125391518-9b70b880-e3df-11eb-8b71-e98a1555b53d.png)
+
+
 
 ## Self-healing (Liveness Probe)
 - deployment.yml에 정상 적용되어 있는 livenessProbe
@@ -1171,91 +1239,7 @@ spec:
 
 - 변경 가능성이 있는 설정을 ConfigMap을 사용하여 관리  
   - order 서비스에서 바라보는 payment 서비스 url 일부분을 ConfigMap 사용하여 구현​  
-
-- order 서비스 내 FeignClient (order/src/main/java/sharedmobility/external/PaymentInfoService.java)
-```java
-@FeignClient(name="payment", url="http://${api.url.order}")
-public interface PaymentInfoService {
-    @RequestMapping(method= RequestMethod.POST, path="/payment")
-    public boolean pay(@RequestBody PaymentInfo paymentInfo);
-
-}
-```
-
-- order 서비스 application.yml
-```yml
-api: 
-  url: 
-    order: ${order-url}
-```
-
-- order 서비스 order.yml
-```yml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: order
-  labels:
-    app: order
-spec:
-  -- 생략 --
-          env:
-            - name: ORDER-URL
-              valueFrom:
-                configMapKeyRef:
-                  name: order-configmap
-                  key: order-url         
-  -- 생략 --
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: order-configmap
-data:
-  order-url: payment:8080
-```
-
-- 적용 후 상세내역 확인 가능
-![KakaoTalk_20210713_132118829](https://user-images.githubusercontent.com/30138356/125390117-4469e400-e3dd-11eb-991e-a5731893f401.png)
-
-
-## Circuit Breaker
-- 서킷 브레이킹 프레임워크 선택 : Hystrix 옵션을 사용하여 구현함
-시나리오는 사용신청(order)-->결제(payment) 시 RESTful Request/Response 로 구현되어 있고 
-결제 요청이 과도할 경우 CB 를 통하여 장애격리.
-
-- Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
-```yml
-# order.yml
-
-hystrix:
-  command:
-    # 전역설정
-    default:
-      execution.isolation.thread.timeoutInMilliseconds: 610
-```
-
-- 피호출 서비스(결제:payment) 의 부하 처리
-```JAVA
-    @PostPersist
-    public void onPostPersist(){
-        // 부하테스트 주석
-        try {
-            Thread.currentThread().sleep((long) (400 + Math.random() * 220));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        // 결제 완료 후 KAFKA 전송
-        if(this.payStatus == "PAIED"){
-            PaymentApproved paymentApproved = new PaymentApproved();
-            BeanUtils.copyProperties(this, paymentApproved);
-            paymentApproved.publishAfterCommit();
-        }
-    }
-```
-
-- siege 툴을 통한 서킷 브레이커 동작 확인
-![image](https://user-images.githubusercontent.com/30138356/125381495-f6e67a80-e3ce-11eb-85fc-d6b454018209.PNG)
-![image](https://user-images.githubusercontent.com/30138356/125381513-006fe280-e3cf-11eb-9323-fe7775b8b1b4.PNG)
+ 
 
 ## 오토스케일 아웃
 - 결제 서비스에 대한 Replica를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15%를 넘어서면 Replica 를 10개까지 늘려준다.
