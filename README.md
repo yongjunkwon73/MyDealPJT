@@ -1016,6 +1016,12 @@ mvn package
 docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest .
 docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest
 ```
+리포지토리 구성
+
+![레파지토리생성](https://user-images.githubusercontent.com/85722789/127076827-cd73a502-3448-44a4-a023-eaf8b28e2e10.jpg)
+push 결과 
+![리포지토리 구성](https://user-images.githubusercontent.com/85722789/127076891-689d9a2c-c6d2-4eaf-832b-b9121d4253ec.jpg)
+
 
 - Kubernetes Deploy 및 Service 생성
 ```
@@ -1030,44 +1036,33 @@ kubectl apply  -f kubernetes/mydealpjt/gateway.yml
 
 ```
 
-- kubernetes/sharedmobility/order.yml 파일
+
+- kubernetes/mydealprj/purchase.yml 파일
 ```YML
 ---
+  ---
 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: order
+  name: purchase
   labels:
-    app: order
+    app: purchase
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: order
+      app: purchase
   template:
     metadata:
       labels:
-        app: order
+        app: purchase
     spec:
       containers:
-        - name: order
-          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-order:latest
+        - name: purchase
+          image: 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-purchase:latest
           ports:
             - containerPort: 8080
-          env:
-            - name: ORDER-URL
-              valueFrom:
-                configMapKeyRef:
-                  name: order-configmap
-                  key: order-url
-          resources:
-            requests:
-              memory: "64Mi"
-              cpu: "250m"
-            limits:
-              memory: "500Mi"
-              cpu: "500m"                     
           readinessProbe:
             httpGet:
               path: '/actuator/health'
@@ -1092,6 +1087,22 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: purchase
+  labels:
+    app: purchase
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: purchase
+ 
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
   name: order
   labels:
     app: order
@@ -1105,15 +1116,7 @@ spec:
 
 ---
 
-
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: order-configmap
-data:
-  order-url: payment:8080
-```
-
+ 
 - Deploy 완료
 ![image](https://user-images.githubusercontent.com/30138356/125383175-f7ccdb80-e3d1-11eb-81c5-522009d5a4ce.PNG)
 
