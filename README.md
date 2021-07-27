@@ -338,221 +338,221 @@ spec:
 
 ## DDD 의 적용
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 PaymentInfo 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하였다. 
-``` JAVA
-  package sharedmobility;
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Billing 마이크로 서비스).  이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하였다. 
+``` Billing.JAVA
+  package mydealprj;
 
-  import javax.persistence.*;
-  import org.springframework.beans.BeanUtils;
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+import java.util.List;
+import java.util.Date;
 
-  @Entity
-  @Table(name="PaymentInfo_table")
-  public class PaymentInfo {
+@Entity
+@Table(name="Billing_table")
+public class Billing {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long payId;
-    private Long orderId;
-    private Long price;
-    private String payDate;
+    private Long puId;
+    private Long salePrice;
     private String payStatus;
+    private String payDate;
     private String payCancelDate;
-    private Long customerId;
 
     @PostPersist
     public void onPostPersist(){
-        // 결제 완료 후 KAFKA 전송
-        if(this.payStatus == "PAIED"){
-            PaymentApproved paymentApproved = new PaymentApproved();
-            BeanUtils.copyProperties(this, paymentApproved);
-            paymentApproved.publishAfterCommit();
-        }
+         // 결재 완료 후 Kafka 전
+        if(this.payStatus == "Y") {
+          Payed payed = new Payed();
+          BeanUtils.copyProperties(this, payed);
+          payed.publishAfterCommit();
+            
+        }      
 
     }
     @PostUpdate
     public void onPostUpdate(){
-        if(this.payStatus == "CANCEL"){
-        PaymentCanceled paymentCanceled = new PaymentCanceled();
-        BeanUtils.copyProperties(this, paymentCanceled);
-        paymentCanceled.publishAfterCommit();
-        }
+         // 결재 취소 전송 
+       if(this.payStatus == "M") {
+        PayCancelled payCancelled = new PayCancelled();
+        BeanUtils.copyProperties(this, payCancelled);
+        payCancelled.publishAfterCommit(); 
+       }
     }
 
     public Long getPayId() {
         return payId;
     }
+
     public void setPayId(Long payId) {
         this.payId = payId;
     }
-    public Long getOrderId() {
-        return orderId;
+    public Long getPuId() {
+        return puId;
     }
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
+
+    public void setPuId(Long puId) {
+        this.puId = puId;
     }
-    public Long getPrice() {
-        return price;
+    public Long getSalePrice() {
+        return salePrice;
     }
-    public void setPrice(Long price) {
-        this.price = price;
-    }
-    public String getPayDate() {
-        return payDate;
-    }
-    public void setPayDate(String payDate) {
-        this.payDate = payDate;
+
+    public void setSalePrice(Long salePrice) {
+        this.salePrice = salePrice;
     }
     public String getPayStatus() {
         return payStatus;
     }
+
     public void setPayStatus(String payStatus) {
         this.payStatus = payStatus;
+    }
+    public String getPayDate() {
+        return payDate;
+    }
+
+    public void setPayDate(String payDate) {
+        this.payDate = payDate;
     }
     public String getPayCancelDate() {
         return payCancelDate;
     }
+
     public void setPayCancelDate(String payCancelDate) {
         this.payCancelDate = payCancelDate;
     }
 
-    public Long getCustomerId() {
-        return customerId;
-    }
-    public void setCustomerId(Long customerId) {
-        this.customerId = customerId;
-    }
-  }
+
+
+
+}
 
 ```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 ```JAVA
+package mydealprj;
+
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
-@RepositoryRestResource(collectionResourceRel="orderInfos", path="orderInfos")
-public interface OrderInfoRepository extends PagingAndSortingRepository<OrderInfo, Long>{
-    List<OrderInfo> findByOrderId(Long orderId);
+@RepositoryRestResource(collectionResourceRel="purchases", path="purchases")
+public interface PurchaseRepository extends PagingAndSortingRepository<Purchase, Long>{
+
 }
+
 
 ```
 ### 적용 후 REST API 의 테스트
 
   - 사용신청(order) 발생 시, req/res 방식으로 결제(payment) 서비스를 호출하고 결제 완료 후 발생하는 PayApproved Event 가 카프카로 송출된다. 
 ```
-  # orderInfo 서비스의 킥보드 사용 신청(주문) 
-  http POST http://a3649a0c9c28b482c85ab06fe0a8a7f4-1255737767.ap-northeast-2.elb.amazonaws.com:8080/order orderId=100 customerId=99
+  # purchase  서비스의 자동차 구매  신청(주문) 
+   
+   보완 필요    
 ```  
-  ![order](https://user-images.githubusercontent.com/30138356/125385992-82afd500-e3d6-11eb-9f7a-64451dd0931f.PNG)
+  
 ```
   # 주문 후 결제 상태 확인 ( payStatus = PAID )
-  http http://a3649a0c9c28b482c85ab06fe0a8a7f4-1255737767.ap-northeast-2.elb.amazonaws.com:8080/payment/1
+    
 ```
-  ![Payment 상태](https://user-images.githubusercontent.com/30138356/125385995-83486b80-e3d6-11eb-9bac-c9c8b175f72b.PNG)
+ 
 
 
-  - PayApproved 를 수신한 렌트(rent) 서비스가 전달받은 OrderId 로 렌트승인(APPROVE) 상태인 데이터를 생성한다.
+  - billApproved 를 수신한 렌트(rent) 서비스가 전달받은 OrderId 로 렌트승인(APPROVE) 상태인 데이터를 생성한다.
   ```
   # 주문 후 결제 상태 확인 ( rentStatus = APPROVE )
-  http http://a3649a0c9c28b482c85ab06fe0a8a7f4-1255737767.ap-northeast-2.elb.amazonaws.com:8080/rent/100
+  
+    보완 필요 
   ```
-  ![rent 상태](https://user-images.githubusercontent.com/30138356/125385996-83e10200-e3d6-11eb-94d5-ff5dad5431bf.PNG)
+ 
 
   - 이후 렌트승인 상태인 OrderId 에 대해 렌트신청 할 경우, 렌트(RENT) 상태로 변경되며 rent Event 가 카프카로 송출된다.
 ```
-# 렌트 신청 ( rentStatus = APPROVE 상태가 아니면 렌트 불가, 렌트 성공 시, rentStatus = RENT 로 변경 )
-  http PUT http://a3649a0c9c28b482c85ab06fe0a8a7f4-1255737767.ap-northeast-2.elb.amazonaws.com:8080/rent/100
+# 탁송  (  )
+ 
 ```
-  ![rent 후 rent 상태](https://user-images.githubusercontent.com/30138356/125386338-11bced00-e3d7-11eb-9e10-0a1b051706fc.PNG)
+  보완 필요 
 
 - 재고(stock) 서비스에서는 해당 rent Event 수신 후, 재고차감 이력을 기록한다. 
 ```
   # 렌트 후 Rent Event 수신한 Stock 서비스의 재고 차감 확인 ( 재고 차감/증가 이력만 남김 )
   ```
-  ![재고이력소스](https://user-images.githubusercontent.com/30138356/125386433-40d35e80-e3d7-11eb-81df-06e1ddf8d29d.PNG)
+  보완 필요 
 ```
   # 재고 차감 내역 콘솔에서 확인
 ```
-  ![8](https://user-images.githubusercontent.com/30138356/125185587-a81ad280-e260-11eb-99d6-307c009821ca.PNG)
+  
 
 ## Correlation-key
-- 사용 반납 작업을 통해, Correlation-key 연결을 검증한다
+- 구매 취소  작업을 통해, Correlation-key 연결을 검증한다
 
 ```
-# 사용 신청 
+#  구매 취소 
 ```
-![사용신청된Order](https://user-images.githubusercontent.com/30138356/125393664-53539500-e3e3-11eb-9d64-ee001b5ab887.PNG)
+ 
 ```
-# 렌트 신청 
+#  탁송 취소 
 ```
-![렌트처리](https://user-images.githubusercontent.com/30138356/125393661-52bafe80-e3e3-11eb-9cd7-62c22ff4b225.PNG)
+ 
 ```
-# 반납 처리
+#  재고 증가
 ```
-![반납처리](https://user-images.githubusercontent.com/30138356/125393660-52bafe80-e3e3-11eb-99d0-0e405e39bfc3.PNG)
+ 
 ```
-# 사용신청 내역과 렌트 내역 확인 ( 상태가 RETURN 으로 변경됨 ) 
+#
 ```
-![오더와 렌트상태](https://user-images.githubusercontent.com/30138356/125393657-5189d180-e3e3-11eb-91fb-3df9210e4a86.PNG)
+ 
 
 ## 동기식 호출 과 Fallback 처리
-- 분석단계에서의 조건 중 하나로 사용신청(orderInfo)->결제(paymentInfo) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
+- 분석단계에서의 조건 중 하나로 구매 (purchase)->결제(billing) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 
 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 ( url 은 Config Map 적용 )
 ``` JAVA
-# (orderInfo) PaymentInfoService.java
-
-@FeignClient(name="payment", url="http://${api.url.order}")
-public interface PaymentInfoService {
-    @RequestMapping(method= RequestMethod.POST, path="/payment")
-    public boolean pay(@RequestBody PaymentInfo paymentInfo);
-}
+# (purhase) billingService.java
+ 
+//  원소스 
+ /*
+@FeignClient(name="Billing", url="http://Billing:8080")
+public interface BillingService {
+    @RequestMapping(method= RequestMethod.GET, path="/billings")
+    public void pay(@RequestBody Billing billing);
+}  */
+  
+-- 변경 소스  
+@FeignClient(name="Billing", url="http://${api.url.Biiling}")
+public interface BillingService {
+    @RequestMapping(method= RequestMethod.GET, path="/billings")
+    public void pay(@RequestBody Billing billing);
+   }
+   
 ```
-- 사용신청 직후(@PostPersist) 결제를 요청하도록 처리
+-  구매 주문 후 (@PostPersist) 결제를 요청하도록 처리
 ``` JAVA
-# OrderInfo.java (Entity)
-
-  // 해당 엔티티 저장 후
-  @PostPersist
-  public void onPostPersist(){
-
-      // 사용 주문 들어왔을 경우
-      if("USE".equals(this.orderStatus)){
-          // 결제 진행
-          PaymentInfo paymentInfo = new PaymentInfo();
-          paymentInfo.setOrderId(this.orderId);
-          paymentInfo.setPrice(this.price);
-          paymentInfo.setCustomerId(this.customerId);
-
-          OrderApplication.applicationContext.getBean(PaymentInfoService.class)
-              .pay(paymentInfo);
-
-          /*
-              Kafka 송출
-          */
-          Ordered ordered = new Ordered();
-          BeanUtils.copyProperties(this, ordered);
-          ordered.publishAfterCommit();   // ordered 카프카 송출
-      }
-  }
+# purchase.java (Entity)
+    보완 필요 
+   
+  // 
 ```
 - 동기식 호출에서는 호출 시간에 따른 타임 커플링이 발생하며, 결제 시스템이 장애가 나면 주문도 못받는다는 것을 확인:
 ```
   # 결제(paymentSystem) 서비스를 잠시 내려놓음
 
-  # 사용 신청 처리
+  # 사용 신청 처리 (보완 필요)
   http POST localhost:8088/order customerId=11 time=3 orderId=20  # Fail
 ```
-![12](https://user-images.githubusercontent.com/30138356/125189944-aa3b5c00-e275-11eb-81c2-514085209b99.PNG)
+  
 ```
-  # 결제서비스 재기동
+  # 결제서비스 재기동ㅍ
   cd payment
   mvn spring-boot:run
 
-  # 사용 신청 처리
+  # 사용 신청 처리(보완 필요)
   http POST localhost:8088/order customerId=11 time=3 orderId=20  #Success
 ```
-![13](https://user-images.githubusercontent.com/30138356/125189975-cfc86580-e275-11eb-9b0c-dec97c2ede61.PNG)
+ 
 
 과도한 요청시에 서비스 장애 벌어질 수 있음에 유의
 
@@ -575,35 +575,14 @@ public interface PaymentInfoService {
 ```
 렌트승인 서비스에서는 결제완료 이벤트에 대해서 이를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
 ``` JAVA
-public class PolicyHandler{
- ...
-    @StreamListener(KafkaProcessor.INPUT)
-    public void wheneverPaymentApproved_Approve(@Payload PaymentApproved paymentApproved){
-        // 유휴 킥보드에 접근하여 해당 Order ID 의 렌트승인 상태로 변경
-        // 렌트 승인 상태인 Order Id 는 기기 접근 시 승인 처리됨.
-        if(!paymentApproved.validate()) return;
 
-        System.out.println("\n\n##### listener Approve : " + paymentApproved.toJson() + "\n\n");
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        SimpleDateFormat sdf = new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss");
-        String today =  sdf.format(timestamp);
-
-        // 결제 승인 시, 렌트 가능한 상태로 변경
-        RentInfo rentInfo = new RentInfo(); // 신규 생성
-        rentInfo.setOrderId(paymentApproved.getOrderId());  // orderId 저장
-        rentInfo.setRentStatus("APPROVE");  // 렌트 상태 저장
-        rentInfo.setApproveDate(today);  // 승인 날짜
-
-        rentInfoRepository.save(rentInfo);
-    }
 ```
 렌트승인 시스템은 사용신청/결제와 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 렌트승인이 유지보수로 인해 잠시 내려간 상태라도 사용신청을 받는데 문제가 없다:
 ```
 # 렌트승인 서비스 (lectureSystem) 를 잠시 내려놓음
 # 사용신청 처리 후 사용신청 및 결제 처리 Event 진행확인
 ```
-![9](https://user-images.githubusercontent.com/30138356/125189677-3fd5ec00-e274-11eb-9aee-f68b40516ce7.PNG)
-![10](https://user-images.githubusercontent.com/30138356/125189710-6e53c700-e274-11eb-9cdf-8c1c66830a35.PNG)
+
 ```
 # 렌트승인 서비스 기동
 cd rent
@@ -611,119 +590,105 @@ mvn spring-boot:run
 
 # 렌트 상태 Update 확인
 ```
-![11](https://user-images.githubusercontent.com/30138356/125189746-9fcc9280-e274-11eb-8ede-260754fa66d9.PNG)
+
 
 
 ## CQRS
 
 - CQRS: Materialized View 를 구현하여, 타 마이크로서비스의 데이터 원본에 접근없이(Composite 서비스나 조인SQL 등 없이) 도 내 서비스의 화면 구성과 잦은 조회가 가능하도록 구현한다
 
-주문 / 결제 / 렌트 서비스의 전체 현황 및 상태 조회를 제공하기 위해 dashboard를 구성하였다.
+ 구매요청 / 결재 / 탁송 서비스의 전체 현황 및 상태 조회를 제공하기 위해 dashboard를 구성하였다.
 
 dashboard의 어트리뷰트는 다음과 같으며
 
-![image](https://user-images.githubusercontent.com/22028798/125186287-79066000-e264-11eb-94a6-ee4a85aa8851.png)
+ 
+![CQRS구성](https://user-images.githubusercontent.com/85722789/127074479-bfe6e740-7a78-449a-a943-a38fcddb2fd2.JPG)
 
-ordered, paymentApproved, canceled, returned, paymentCanceled 이벤트에 따라 주문상태, 반납상태, 취소상태를 업데이트 하는 모델링을 진행하였다.
+
+purchased, purchasecancelles, payed, paycanceled, Consigned, Consignedcancelled 이벤트에 따라 주문상태, 반납상태, 취소상태를 업데이트 하는 모델링을 진행하였다.
 
 자동생성된 소스 샘플은 아래와 같다
-Dashboard.java
+dash.java
 ``` JAVA
-package sharedmobility;
+ package mydealprj;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Entity
-@Table(name="Dashboard_table")
-public class Dashboard {
+@Table(name="Dash_table")
+public class Dash {
 
         @Id
         @GeneratedValue(strategy=GenerationType.AUTO)
-        private Long dashboardId;
-        private Long customerId;
-        private Long orderId;
-        private Long paymentId;
-        private Long rentId;
-        private String payStatus;
-        private String orderStatus;
-        private String orderDate;
-        private String cancelDate;
-        private String returnDate;
+        private Long dashId;
+        private Long puId;
+        private Long cuId;
+        private String puDate;
+        private String puCancelDate;
+        private String puStatus;
+        private Long payId;
         private String payDate;
-        private Long price;
         private String payCancelDate;
+        private String payStatus;
+        private Long conId;
+        private String conDate;
+        private String conCancelDate;
+        private String conStatus;
+        private Long stockId;
+        private String stockType;
+        private String stockDate;
+        private Long stockTotal;
 
 
-        public Long getDashboardId() {
-            return dashboardId;
+        public Long getDashId() {
+            return dashId;
         }
 
-        public void setDashboardId(Long dashboardId) {
-            this.dashboardId = dashboardId;
+        public void setDashId(Long dashId) {
+            this.dashId = dashId;
         }
-        public Long getCustomerId() {
-            return customerId;
-        }
-
-        public void setCustomerId(Long customerId) {
-            this.customerId = customerId;
-        }
-        public Long getOrderId() {
-            return orderId;
+        public Long getPuId() {
+            return puId;
         }
 
-        public void setOrderId(Long orderId) {
-            this.orderId = orderId;
+        public void setPuId(Long puId) {
+            this.puId = puId;
         }
-        public Long getPaymentId() {
-            return paymentId;
-        }
-
-        public void setPaymentId(Long paymentId) {
-            this.paymentId = paymentId;
-        }
-        public Long getRentId() {
-            return rentId;
+        public Long getCuId() {
+            return cuId;
         }
 
-        public void setRentId(Long rentId) {
-            this.rentId = rentId;
+        public void setCuId(Long cuId) {
+            this.cuId = cuId;
         }
-        public String getPayStatus() {
-            return payStatus;
-        }
-
-        public void setPayStatus(String payStatus) {
-            this.payStatus = payStatus;
-        }
-        public String getOrderStatus() {
-            return orderStatus;
+        public String getPuDate() {
+            return puDate;
         }
 
-        public void setOrderStatus(String orderStatus) {
-            this.orderStatus = orderStatus;
+        public void setPuDate(String puDate) {
+            this.puDate = puDate;
         }
-        public String getOrderDate() {
-            return orderDate;
-        }
-
-        public void setOrderDate(String orderDate) {
-            this.orderDate = orderDate;
-        }
-        public String getCancelDate() {
-            return cancelDate;
+        public String getPuCancelDate() {
+            return puCancelDate;
         }
 
-        public void setCancelDate(String cancelDate) {
-            this.cancelDate = cancelDate;
+        public void setPuCancelDate(String puCancelDate) {
+            this.puCancelDate = puCancelDate;
         }
-        public String getReturnDate() {
-            return returnDate;
+        public String getPuStatus() {
+            return puStatus;
         }
 
-        public void setReturnDate(String returnDate) {
-            this.returnDate = returnDate;
+        public void setPuStatus(String puStatus) {
+            this.puStatus = puStatus;
+        }
+        public Long getPayId() {
+            return payId;
+        }
+
+        public void setPayId(Long payId) {
+            this.payId = payId;
         }
         public String getPayDate() {
             return payDate;
@@ -732,13 +697,6 @@ public class Dashboard {
         public void setPayDate(String payDate) {
             this.payDate = payDate;
         }
-        public Long getPrice() {
-            return price;
-        }
-
-        public void setPrice(Long price) {
-            this.price = price;
-        }
         public String getPayCancelDate() {
             return payCancelDate;
         }
@@ -746,29 +704,97 @@ public class Dashboard {
         public void setPayCancelDate(String payCancelDate) {
             this.payCancelDate = payCancelDate;
         }
+        public String getPayStatus() {
+            return payStatus;
+        }
+
+        public void setPayStatus(String payStatus) {
+            this.payStatus = payStatus;
+        }
+        public Long getConId() {
+            return conId;
+        }
+
+        public void setConId(Long conId) {
+            this.conId = conId;
+        }
+        public String getConDate() {
+            return conDate;
+        }
+
+        public void setConDate(String conDate) {
+            this.conDate = conDate;
+        }
+        public String getConCancelDate() {
+            return conCancelDate;
+        }
+
+        public void setConCancelDate(String conCancelDate) {
+            this.conCancelDate = conCancelDate;
+        }
+        public String getConStatus() {
+            return conStatus;
+        }
+
+        public void setConStatus(String conStatus) {
+            this.conStatus = conStatus;
+        }
+        public Long getStockId() {
+            return stockId;
+        }
+
+        public void setStockId(Long stockId) {
+            this.stockId = stockId;
+        }
+        public String getStockType() {
+            return stockType;
+        }
+
+        public void setStockType(String stockType) {
+            this.stockType = stockType;
+        }
+        public String getStockDate() {
+            return stockDate;
+        }
+
+        public void setStockDate(String stockDate) {
+            this.stockDate = stockDate;
+        }
+        public Long getStockTotal() {
+            return stockTotal;
+        }
+
+        public void setStockTotal(Long stockTotal) {
+            this.stockTotal = stockTotal;
+        }
 
 }
+
 ```
 DashboardRepository.java
 ```JAVA
-package sharedmobility;
+ package mydealprj;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface DashboardRepository extends CrudRepository<Dashboard, Long> {
+public interface DashRepository extends CrudRepository<Dash, Long> {
 
-    List<Dashboard> findByOrderId(Long orderId);
+    List<Dash> findByPayId(Long payId);
+   // List<Dash> findByPayId(Long payId);
+    List<Dash> findByConId(Long conId);
+   // List<Dash> findByConId(Long conId);
+    List<Dash> findByStockId(Long stockId);
 
 }
 ```
 DashboardViewHandler.java
 ```JAVA
-package sharedmobility;
+ package mydealprj;
 
-import sharedmobility.config.kafka.KafkaProcessor;
+import mydealprj.config.kafka.KafkaProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -779,28 +805,26 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DashboardViewHandler {
+public class DashViewHandler {
 
 
     @Autowired
-    private DashboardRepository dashboardRepository;
+    private DashRepository dashRepository;
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenOrdered_then_CREATE_1 (@Payload Ordered ordered) {
+    public void whenPuchased_then_CREATE_1 (@Payload Puchased puchased) {
         try {
 
-            if (!ordered.validate()) return;
+            if (!puchased.validate()) return;
 
             // view 객체 생성
-            Dashboard dashboard = new Dashboard();
+            Dash dash = new Dash();
             // view 객체에 이벤트의 Value 를 set 함
-            dashboard.setOrderId(ordered.getOrderId());
-            dashboard.setOrderStatus(ordered.getOrderStatus());
-            dashboard.setCustomerId(ordered.getCustomerId());
-            dashboard.setOrderDate(ordered.getOrderDate());
+            dash.setPuId(puchased.getId());
+            dash.setPuDate(puchased.getPuDate());a
+            dash.setPuStatus(puchased.getPuStatus());
             // view 레파지 토리에 save
-            dashboardRepository.save(dashboard);
-
+            dashRepository.save(dash);
 
         }catch (Exception e){
             e.printStackTrace();
@@ -809,19 +833,19 @@ public class DashboardViewHandler {
 
 
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenPaymentApproved_then_UPDATE_1(@Payload PaymentApproved paymentApproved) {
+    public void whenPayed_then_UPDATE_1(@Payload Payed payed) {
         try {
-            if (!paymentApproved.validate()) return;
+            if (!payed.validate()) return;
                 // view 객체 조회
-                    List<Dashboard> dashboardList = dashboardRepository.findByOrderId(paymentApproved.getOrderId());
-                    for(Dashboard dashboard : dashboardList){
+
+                    List<Dash> dashList = dashRepository.findByPayId(payed.getPayId());
+                    for(Dash dash : dashList){
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    dashboard.setPaymentId(paymentApproved.getPayId());
-                    dashboard.setPayDate(paymentApproved.getPayDate());
-                    dashboard.setPayStatus(paymentApproved.getPayStatus());
-                    dashboard.setPrice(paymentApproved.getPrice());
+                    dash.setPayStatus(payed.getPayStatus());
+                    dash.setPayDate(payed.getPayDate());
+                    dash.setPuId(payed.getPuId());
                 // view 레파지 토리에 save
-                dashboardRepository.save(dashboard);
+                dashRepository.save(dash);
                 }
 
         }catch (Exception e){
@@ -829,18 +853,19 @@ public class DashboardViewHandler {
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenCanceled_then_UPDATE_2(@Payload Canceled canceled) {
+    public void whenPayCancelled_then_UPDATE_2(@Payload PayCancelled payCancelled) {
         try {
-            if (!canceled.validate()) return;
+            if (!payCancelled.validate()) return;
                 // view 객체 조회
 
-                    List<Dashboard> dashboardList = dashboardRepository.findByOrderId(canceled.getOrderId());
-                    for(Dashboard dashboard : dashboardList){
+                    List<Dash> dashList = dashRepository.findByPayId(payCancelled.getId());
+                    for(Dash dash : dashList){
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    dashboard.setOrderStatus(canceled.getOrderStatus());
-                    dashboard.setCancelDate(canceled.getCancelDate());
+                    dash.setPayStatus(payCancelled.getPayStatus());
+                    dash.setPuCancelDate(payCancelled.getPayCalncelDate());
+                    dash.setPuId(payCancelled.getPuId());
                 // view 레파지 토리에 save
-                dashboardRepository.save(dashboard);
+                dashRepository.save(dash);
                 }
 
         }catch (Exception e){
@@ -848,18 +873,19 @@ public class DashboardViewHandler {
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenReturned_then_UPDATE_3(@Payload Returned returned) {
+    public void whenConsigned_then_UPDATE_3(@Payload Consigned consigned) {
         try {
-            if (!returned.validate()) return;
+            if (!consigned.validate()) return;
                 // view 객체 조회
 
-                    List<Dashboard> dashboardList = dashboardRepository.findByOrderId(returned.getOrderId());
-                    for(Dashboard dashboard : dashboardList){
+                    List<Dash> dashList = dashRepository.findByConId(consigned.getId());
+                    for(Dash dash : dashList){
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    dashboard.setOrderStatus(returned.getOrderStatus());
-                    dashboard.setReturnDate(returned.getReturnDate());
+                    dash.setConDate(consigned.getConDate());
+                    dash.setPuId(consigned.getPuId());
+                    dash.setConStatus(consigned.getConStatus());
                 // view 레파지 토리에 save
-                dashboardRepository.save(dashboard);
+                dashRepository.save(dash);
                 }
 
         }catch (Exception e){
@@ -867,18 +893,39 @@ public class DashboardViewHandler {
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
-    public void whenPaymentCanceled_then_UPDATE_4(@Payload PaymentCanceled paymentCanceled) {
+    public void whenConsignCancelled_then_UPDATE_4(@Payload ConsignCancelled consignCancelled) {
         try {
-            if (!paymentCanceled.validate()) return;
+            if (!consignCancelled.validate()) return;
                 // view 객체 조회
 
-                    List<Dashboard> dashboardList = dashboardRepository.findByOrderId(paymentCanceled.getOrderId());
-                    for(Dashboard dashboard : dashboardList){
+                    List<Dash> dashList = dashRepository.findByConId(consignCancelled.getId());
+                    for(Dash dash : dashList){
                     // view 객체에 이벤트의 eventDirectValue 를 set 함
-                    dashboard.setPayStatus(paymentCanceled.getPayStatus());
-                    dashboard.setPayCancelDate(paymentCanceled.getPayCancelDate());
+                    dash.setPuId(consignCancelled.getPuId());
+                    dash.setConCancelDate(consignCancelled.getConCancelDate());
+                    dash.setConStatus(consignCancelled.getConStatus());
                 // view 레파지 토리에 save
-                dashboardRepository.save(dashboard);
+                dashRepository.save(dash);
+                }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    @StreamListener(KafkaProcessor.INPUT)
+    public void whenStockChanged_then_UPDATE_5(@Payload StockChanged stockChanged) {
+        try {
+            if (!stockChanged.validate()) return;
+                // view 객체 조회
+
+                    List<Dash> dashList = dashRepository.findByStockId(stockChanged.getId());
+                    for(Dash dash : dashList){
+                    // view 객체에 이벤트의 eventDirectValue 를 set 함
+                    dash.setStockDate(stockChanged.getStockDate());
+                    dash.setStockTotal(stockChanged.getStockTotal());
+                    dash.setPuId(stockChanged.getPuId());
+                // view 레파지 토리에 save
+                dashRepository.save(dash);
                 }
 
         }catch (Exception e){
@@ -887,6 +934,9 @@ public class DashboardViewHandler {
     }
 
 }
+
+
+ 
 ```
 CQRS에 대한 테스트는 아래와 같다
 주문생성 시 주문 및 결제까지 정상적으로 수행 및 등록이 되며
@@ -924,57 +974,60 @@ dashbaord CQRS 결과는 아래와 같다
 
 - Build 및 ECR 에 Build/Push 하기
 ```
-# order
-cd Order
+ 
+# purchase
+cd 
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-order:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-order:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-purchase:latest .
+docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-purchase:latest
 
-# payment
+# Billing
 cd ..
-cd Payment
+cd billing
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-payment:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-payment:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-billing:latest .
+docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-billing:latest 
 
-# rent
+# Consign
 cd ..
 cd Rent
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-rent:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-rent:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-consign:latest .
+docker push   
 
 # stock
 cd ..
 cd Stock
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-stock:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-stock:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-stock:latest .
+docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-stock:latest
 
 # dashboard
 cd ..
 cd Dashboard
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-dashboard:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-dashboard:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-dashboard:latest . 
+docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-dashboard:latest
 
 # gateway
 cd ..
 cd gateway
 mvn package
-docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-gateway:latest .
-docker push 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user01-gateway:latest
+docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest .
+docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest
 ```
 
 - Kubernetes Deploy 및 Service 생성
 ```
 cd ..
-kubectl apply  -f kubernetes/sharedmobility/order.yml
-kubectl apply  -f kubernetes/sharedmobility/payment.yml
-kubectl apply  -f kubernetes/sharedmobility/rent.yml
-kubectl apply  -f kubernetes/sharedmobility/stock.yml
-kubectl apply  -f kubernetes/sharedmobility/dashboard.yml
-kubectl apply  -f kubernetes/sharedmobility/gateway.yml
+ 
+kubectl apply  -f kubernetes/mydealpjt/purchase.yml
+kubectl apply  -f kubernetes/mydealpjt/billing.yml
+kubectl apply  -f kubernetes/mydealpjt/consign.yml
+kubectl apply  -f kubernetes/mydealpjt/stock.yml
+kubectl apply  -f kubernetes/mydealpjt/dashboard.yml
+kubectl apply  -f kubernetes/mydealpjt/gateway.yml
+
 ```
 
 - kubernetes/sharedmobility/order.yml 파일
