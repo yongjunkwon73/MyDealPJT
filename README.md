@@ -958,7 +958,6 @@ dashbaord CQRS 결과는 아래와 같다
 (증적자료 보완 필요)
 
 
-![image](https://user-images.githubusercontent.com/22028798/125186621-5d03be00-e266-11eb-85a6-58cede9ce417.png) 
 
 ## 폴리글랏 퍼시스턴스 (미구현)
 - CQRS 를 위한 Dashboard 서비스만 DB를 구분하여 적용함. 인메모리 DB인 hsqldb 사용.
