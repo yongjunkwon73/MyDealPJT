@@ -1117,8 +1117,14 @@ spec:
 ---
 
  
-- Deploy 완료
-![image](https://user-images.githubusercontent.com/30138356/125383175-f7ccdb80-e3d1-11eb-81c5-522009d5a4ce.PNG)
+- Deploy 완료 ( POD /Service 생성)
+
+![POD생성](https://user-images.githubusercontent.com/85722789/127077585-9b059e3b-5c0f-4bd0-90c7-179c4228fe58.jpg)
+
+![Service 생성](https://user-images.githubusercontent.com/85722789/127077593-2055b333-da5c-4ce5-b4fc-1588c7f90237.jpg)
+
+## Helm 설치
+ - 
 
 
 ## 무정지 재배포(Readiness Probe)
