@@ -1016,14 +1016,15 @@ mvn package
 docker build -t 879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest .
 docker push   879772956301.dkr.ecr.ap-northeast-2.amazonaws.com/user04-gateway:latest
 ```
-리포지토리 구성
+
+## 리포지토리 구성
 
 ![레파지토리생성](https://user-images.githubusercontent.com/85722789/127076827-cd73a502-3448-44a4-a023-eaf8b28e2e10.jpg)
 push 결과 
 ![리포지토리 구성](https://user-images.githubusercontent.com/85722789/127076891-689d9a2c-c6d2-4eaf-832b-b9121d4253ec.jpg)
 
 
-- Kubernetes Deploy 및 Service 생성
+## Kubernetes Deploy 및 Service 생성
 ```
 cd ..
  
@@ -1116,8 +1117,7 @@ spec:
 
 ---
 
- 
-- Deploy 완료 ( POD /Service 생성)
+ ## Deploy 완료 ( POD /Service 생성)
 
 ![POD생성](https://user-images.githubusercontent.com/85722789/127077585-9b059e3b-5c0f-4bd0-90c7-179c4228fe58.jpg)
 
