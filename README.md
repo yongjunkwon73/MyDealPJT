@@ -1221,35 +1221,65 @@ Seige 툴을 통한 서킷 브레이커 동작 확인 (미수행)
 
 
 ## Self-healing (Liveness Probe)
-- deployment.yml에 정상 적용되어 있는 livenessProbe
+-  bliing.yml에 정상 적용되어 있는 livenessProbe
+ '''
+ Spec:
+      containers:
+        - name: billing
+          image: 879772956301.악.ecr.ap-northeast-2.amazonaws.com/user04-billing:latest
+          args:
+          - /bin/sh
+          - -c
+          - touch /tmp/healthy; sleep 10; rm -rf /tmp/healthy; sleep 600;
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: ＇/actuator/health＇
+              port: 8080
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: ＇/actuator/health＇
+              port: 8080
+            initialDelaySeconds: 120
+            timeoutSeconds: 2
+            periodSeconds: 5
+            failureThreshold: 5
+  '''
 
-![image](https://user-images.githubusercontent.com/22028798/125394269-69ae2080-e3e4-11eb-9611-3a79a072cdfc.png)
-
-- 정상작동 중 확인
-
-![image](https://user-images.githubusercontent.com/22028798/125394378-906c5700-e3e4-11eb-9728-ed329ef46efc.png)
-
-- 포트 및 경로 잘못된 값으로 변경 후 retry 시도 확인
-
-![image](https://user-images.githubusercontent.com/22028798/125394475-b1cd4300-e3e4-11eb-8c80-d953e29bed0c.png)
-![image](https://user-images.githubusercontent.com/22028798/125394515-c01b5f00-e3e4-11eb-8bb3-0f7318c3adb4.png)
-
-
-## Config Map
-
-- 변경 가능성이 있는 설정을 ConfigMap을 사용하여 관리  
-  - order 서비스에서 바라보는 payment 서비스 url 일부분을 ConfigMap 사용하여 구현​  
  
 
-## 오토스케일 아웃
+- 정상작동 중 확인 (적용전)
+
+ ![liveness적용전](https://user-images.githubusercontent.com/85722789/127086868-ac9334d6-7ad6-41d8-b8b6-8ac4db22ca5b.jpg)
+
+- 적용 후  (Crashloog back off 발생 및 Retry)
+
+![liveness적용후](https://user-images.githubusercontent.com/85722789/127086877-86f2be5b-19a0-495d-bfad-e14e42f2e6db.png)
+
+ 
+
+## Config Map 
+
+- 변경 가능성이 있는 설정을 ConfigMap을 사용하여 관리 
+ -- purchase 서비스에서 바라보는 billing 서비스 url 일부분을 configMap 사용하여 구현
+ 
+ 
+ - purchase 서비스내 FeignClient (purchase/src/main/java/mydealprj/external/billingService.java)
+   ![configmap 설정 0](https://user-images.githubusercontent.com/85722789/127089597-c63a9f48-c65a-4404-844e-cb9c67165ad2.JPG)
+ - purchase 서비스 application.yml
+ ![configmap 설정 1](https://user-images.githubusercontent.com/85722789/127089614-9eee0148-f49a-412e-9d32-a16f0bc28550.JPG)
+
+ - purchase 서비스 purchase.yml
+  ![configmap 설정 2](https://user-images.githubusercontent.com/85722789/127089632-156fc3f0-079f-4686-b8e1-c025d085f6d4.JPG)
+ - 적용 상태 
+
+![configmap 적용상태](https://user-images.githubusercontent.com/85722789/127089661-66e6f3cc-27a5-48fa-919d-b6ab194132f9.JPG)
+
+
+## 오토스케일 아웃 (미구현)
 - 결제 서비스에 대한 Replica를 동적으로 늘려주도록 HPA 를 설정한다. 설정은 CPU 사용량이 15%를 넘어서면 Replica 를 10개까지 늘려준다.
-
-- (오토스케일 미적용 시) siege -c10 -t105 -r10 -v --content-type "application/json" 'http://gateway:8080/order POST {"orderId" : 1, "customerId": 1}'
-![KakaoTalk_20210713_115034531](https://user-images.githubusercontent.com/30138356/125382776-43cb5080-e3d1-11eb-946e-381e02d18f79.png)
-
-- (오토스케일 적용) kubectl autoscale deploy payment --min=1 --max=10 --cpu-percent=15
-![KakaoTalk_20210713_114857158](https://user-images.githubusercontent.com/30138356/125382849-69585a00-e3d1-11eb-95cf-cf69d29b5a44.png)
-
-- (오토스케일 적용 결과) siege -c10 -t105 -r10 -v --content-type "application/json" 'http://gateway:8080/order POST {"orderId" : 1, "customerId": 1}'
-![KakaoTalk_20210713_114858955](https://user-images.githubusercontent.com/30138356/125382970-9a388f00-e3d1-11eb-9dd8-9c8359f79433.png)
-![KakaoTalk_20210713_114900577](https://user-images.githubusercontent.com/30138356/125382972-9ad12580-e3d1-11eb-8e54-7811f98966b8.png)
