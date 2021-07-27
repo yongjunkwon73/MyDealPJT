@@ -978,6 +978,8 @@ dashbaord CQRS 결과는 아래와 같다
 ```
 - 변경 후에도 정상 구동됨을 확인
  
+ 
+ 
 # 운영
 
 ## Deploy / Pipeline
