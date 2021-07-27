@@ -564,12 +564,23 @@ public interface BillingService {
   ...
     @PostPersist
     public void onPostPersist(){
-        // 결제 완료 후 KAFKA 전송
-        if(this.payStatus == "PAIED"){
-            PaymentApproved paymentApproved = new PaymentApproved();
-            BeanUtils.copyProperties(this, paymentApproved);
-            paymentApproved.publishAfterCommit();
-        }
+         // 결재 완료 후 Kafka 전
+        if(this.payStatus == "Y") {
+          Payed payed = new Payed();
+          BeanUtils.copyProperties(this, payed);
+          payed.publishAfterCommit();
+            
+        }      
+
+    }
+    @PostUpdate
+    public void onPostUpdate(){
+         // 결재 취소 전송 
+       if(this.payStatus == "M") {
+        PayCancelled payCancelled = new PayCancelled();
+        BeanUtils.copyProperties(this, payCancelled);
+        payCancelled.publishAfterCommit(); 
+       }
 
     }
 ```
@@ -940,13 +951,16 @@ public class DashViewHandler {
 ```
 CQRS에 대한 테스트는 아래와 같다
 주문생성 시 주문 및 결제까지 정상적으로 수행 및 등록이 되며
-![image](https://user-images.githubusercontent.com/22028798/125186608-465d6700-e266-11eb-863e-3403c96f5782.png)
+(증적자료 보완 필요)
+
 
 dashbaord CQRS 결과는 아래와 같다
+(증적자료 보완 필요)
+
 
 ![image](https://user-images.githubusercontent.com/22028798/125186621-5d03be00-e266-11eb-85a6-58cede9ce417.png) 
 
-## 폴리글랏 퍼시스턴스
+## 폴리글랏 퍼시스턴스 (미구현)
 - CQRS 를 위한 Dashboard 서비스만 DB를 구분하여 적용함. 인메모리 DB인 hsqldb 사용.
 ```xml
 		<!-- <dependency>
@@ -963,9 +977,7 @@ dashbaord CQRS 결과는 아래와 같다
 		</dependency>
 ```
 - 변경 후에도 정상 구동됨을 확인
-![구동확인1](https://user-images.githubusercontent.com/30138356/125391898-2782e000-e3e0-11eb-8f50-5c1a3ff963f8.PNG)
-![구동확인](https://user-images.githubusercontent.com/30138356/125391896-2651b300-e3e0-11eb-9be6-2410b0e51e49.PNG)
-
+ 
 # 운영
 
 ## Deploy / Pipeline
@@ -1280,6 +1292,12 @@ Seige 툴을 통한 서킷 브레이커 동작 확인 (미수행)
  - 적용 상태 
 
 ![configmap 적용상태](https://user-images.githubusercontent.com/85722789/127089661-66e6f3cc-27a5-48fa-919d-b6ab194132f9.JPG)
+
+## Circuit Breaker 
+--서킷 브레이킹 프레임워크 선택 : Hystrix 옵션을 사용하여 구현함 시나리오는 사용신청(order)-->결제(payment) 시 RESTful Request/Response 로 구현되어 있고 결제 요청이 과도할 경우 CB 를 통하여 장애격리.
+
+-- Hystrix 를 설정: 요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+
 
 
 ## 오토스케일 아웃 (미구현)
