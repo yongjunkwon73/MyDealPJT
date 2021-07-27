@@ -1222,7 +1222,8 @@ Seige 툴을 통한 서킷 브레이커 동작 확인 (미수행)
 
 ## Self-healing (Liveness Probe)
 -  bliing.yml에 정상 적용되어 있는 livenessProbe
- '''
+
+```
  Spec:
       containers:
         - name: billing
@@ -1249,7 +1250,7 @@ Seige 툴을 통한 서킷 브레이커 동작 확인 (미수행)
             timeoutSeconds: 2
             periodSeconds: 5
             failureThreshold: 5
-  '''
+```
 
  
 
